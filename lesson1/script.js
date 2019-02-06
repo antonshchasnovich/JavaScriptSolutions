@@ -1,11 +1,23 @@
+fizzBuzz();
+
 function fizzBuzz() {
     for (let i = 1; i <= 100; i++) {
         console.log(getFizzBuzzIfPossible(i));
     }
 
-    function getFizzBuzzIfPossible(i) {
-        let results = ["FizzBuzz", i, i, "Fizz", i, "Buzz", "Fizz", i, i, "Fizz", "Buzz", i, "Fizz", i, i, i, i];
-        return results[i % 15];
+    function getFizzBuzzIfPossible(n) {
+        let results = ["FizzBuzz"];
+        return results[n % 15] || getFizzIfPossible(n);
+    }
+
+    function getFizzIfPossible(n) {
+        let results = ["Fizz"];
+        return results[n % 3] || getBuzzIfPossible(n);
+    }
+
+    function getBuzzIfPossible(n) {
+        let results = ["Buzz"];
+        return results[n % 5] || n;
     }
 }
 
