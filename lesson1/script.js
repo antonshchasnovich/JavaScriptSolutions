@@ -6,18 +6,10 @@ function fizzBuzz() {
     }
 
     function getFizzBuzzIfPossible(n) {
-        let results = ["FizzBuzz"];
-        return results[n % 15] || getFizzIfPossible(n);
-    }
-
-    function getFizzIfPossible(n) {
-        let results = ["Fizz"];
-        return results[n % 3] || getBuzzIfPossible(n);
-    }
-
-    function getBuzzIfPossible(n) {
-        let results = ["Buzz"];
-        return results[n % 5] || n;
+        let fizzBuzzArr = ["FizzBuzz"];
+        let fizzArr = ["Fizz"];
+        let buzzArr = ["Buzz"];
+        return fizzBuzzArr[n % 15] || fizzArr[n % 3] || buzzArr[n % 5] || n;
     }
 }
 
