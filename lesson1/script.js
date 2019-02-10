@@ -46,3 +46,48 @@ function isDeepEqual(a, b) {
     }
     return true;
 }
+
+function spiral(array) {
+    var spiralArray = [];
+    var tempArray = array.map(function (arr) {
+        return arr.slice();
+    });
+
+    while (true) {
+        var element = tempArray.shift()
+        if (element) {
+            for (var i = 0; i < element.length; i++) {
+                spiralArray.push(element[i]);
+            }
+            if (tempArray.length > 0) {
+                tempArray = rotate(tempArray);
+            }
+        } else {
+            break;
+        }
+    }
+    return spiralArray;
+}
+
+function rotate(array) {
+    var rotatedArray = matrixArray(array[0].length, array.length);
+    for (var i = 0; i < rotatedArray.length; i++) {
+        for (var j = 0; j < rotatedArray[0].length; j++) {
+            rotatedArray[rotatedArray.length - i - 1][j] = array[j][i];
+        }
+    }
+    return rotatedArray;
+}
+
+function matrixArray(rows, columns) {
+    var arr = [];
+    for (var i = 0; i < rows; i++) {
+        arr[i] = new Array();
+        for (var j = 0; j < columns; j++) {
+            arr[i][j] = null;
+        }
+    }
+    return arr;
+}
+
+
