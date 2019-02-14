@@ -1,3 +1,5 @@
+var WS_URL = 'ws://localhost:8080/Chat/chat';
+
 var CHAT_WIDTH = 400;
 var CHAT_HEIGHT = 600;
 var MARGINS = 7;
@@ -5,6 +7,7 @@ var PADDINGS = 5;
 var BORDERS = 1;
 var CORRECTION = 5; // поправка на расстояние от левой границы окна браузера до первого элемента
 var SCROLL_WIDTH = getScrollWidth();
+
 var chat;
 
 
@@ -16,6 +19,7 @@ function Chat() {
     var chatWindowProps = 'left=' + (window.screenX + window.innerWidth - CHAT_WIDTH) + ',top=' + (window.screenY + window.innerHeight - CHAT_HEIGHT) + ',width=' + CHAT_WIDTH + ',height=' + CHAT_HEIGHT;
 
     this.win = window.open('about:blank', 'Chat', chatWindowProps);
+    this.win.onbeforeunload = () => this.closeSocket();
 
     var generalContainer = this.win.document.createElement('div');
     this.win.document.body.appendChild(generalContainer);
@@ -52,7 +56,7 @@ function Chat() {
     this.sendMsgButton.style.marginLeft = MARGINS;
     this.sendMsgButton.style.position = 'absolute';
     this.sendMsgButton.innerText = 'Send';
-    this.sendMsgButton.addEventListener('click', this.sendMessage, false);
+    this.sendMsgButton.addEventListener('click', e => this.sendMessage());
     elemsForSendingMsg.appendChild(this.sendMsgButton);
 
     this.startBox = this.win.document.createElement('div');
@@ -75,32 +79,78 @@ function Chat() {
     var buttonsWidth = (CHAT_WIDTH / 2 - MARGINS) / 2;
 
     this.regAgentButton = this.win.document.createElement('button');
+    //закомментированный рабочий вариант со стрелочной функцией
+    //this.regAgentButton.addEventListener('click', e => this.regAgent());
     this.regAgentButton.addEventListener('click', this.regAgent, false);
+    
     this.regAgentButton.innerHTML = 'agent';
     this.regAgentButton.style.width = buttonsWidth;
     regButtons.appendChild(this.regAgentButton);
 
     this.regClientButton = this.win.document.createElement('button');
-    this.regClientButton.addEventListener('click', this.regClient, false);
+    this.regClientButton.addEventListener('click', e => this.regClient());
     this.regClientButton.innerHTML = 'client';
     this.regClientButton.style.marginLeft = MARGINS;
     this.regClientButton.style.width = buttonsWidth;
     regButtons.appendChild(this.regClientButton);
 }
 
-Chat.prototype.sendMessage = function () {
-    //заглушка
-    console.log('Message sended');
+Chat.prototype.openSocket = function () {
+    this.ws = new WebSocket(WS_URL);
+    this.ws.onopen = () => this.onOpen();
+    this.ws.onmessage = (e) => this.onMessage(JSON.parse(e.data));
+    this.ws.onclose = (e) => this.onClose();
+    this.userName = this.userNameInputField.value;
+    this.startBox.style.display = "none";
+    this.chatBox.style.display = "block";
 }
 
-Chat.prototype.regAgent = function () {
-    //заглушка
-    console.log('Agent registered');
+Chat.prototype.sendMessage = function () {
+    this.send('TEXT_MESSAGE');
 }
+
+//теряется контекст
+Chat.prototype.regAgent = function () {
+    console.log(this); // вывод: <button style="width: 96.5px;">agent</button>
+    this.status = 'agent';
+    this.openSocket();
+}                       // здесь вероятно нужно привязать контекст .bind(...); что нужно указать в качестве контекста??
 
 Chat.prototype.regClient = function () {
-    //заглушка
-    console.log('Client registered');
+    this.status = 'client';
+    this.openSocket();
+}
+
+Chat.prototype.onOpen = function () {
+    var typeRegMessage;
+    if (this.status == 'agent') typeRegMessage = 'AGENT_REG_MESSAGE';
+    else if (this.status == 'client') typeRegMessage = 'CLIENT_REG_MESSAGE';
+    this.send(typeRegMessage);
+}
+
+Chat.prototype.onClose = function () {}
+
+Chat.prototype.onMessage = function (message) {
+    var pMsg = document.createElement("p");
+    var messageTime = new Date();
+    pMsg.innerText = messageTime.toTimeString().substring(0, 5) + ' ' + message.name + ': ' + message.text;
+    this.messagesBox.appendChild(pMsg);
+    this.messagesBox.scrollTop = this.messagesBox.scrollHeight;
+}
+
+Chat.prototype.send = function (msgType) {
+    var message = {
+        name: this.userName,
+        text: this.msgTextArea.value,
+        type: msgType,
+        index: 0
+    };
+    this.ws.send(JSON.stringify(message));
+    this.msgTextArea.value = "";
+}
+
+Chat.prototype.closeSocket = function(){
+    this.ws.close();
 }
 
 function getScrollWidth() {
